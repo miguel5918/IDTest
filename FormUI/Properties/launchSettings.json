@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FormUI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "FormUI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
