@@ -24,9 +24,9 @@ namespace API.Controllers
         }
         // GET: api/messages
         [HttpGet]
-        public async Task<IActionResult> GetFilterMessages()
+        public async Task<IActionResult> GetMessages()
         {
-            var messages = await _repository.Query().ToListAsync();          
+            var messages = await _repository.GetAllMessages();          
             var messagesDTO = Mapper.MapList<API.Models.Messages, MessageDTO>(messages);
             return Ok(messagesDTO);
         }
@@ -59,7 +59,7 @@ namespace API.Controllers
             var Message = Mapper.Map<API.DTO.MessageDTO, API.Models.Messages>(messageDTO);
                      var Twilo = await _repository.CreateAndSendMessage(Message);
            
-            return Ok(new { Twilo });
+            return Ok(new TwiloResponse(){ Twilo =Twilo });
         }
 
         // PUT: api/messages/{id}

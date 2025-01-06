@@ -71,5 +71,17 @@ namespace API.Repository
                 throw new ApplicationException("An error occurred while processing the message.", ex);
             }
         }
+        public async Task<IEnumerable<Messages>> GetAllMessages()
+        {
+            try
+            {
+                // Usamos ToListAsync para hacer la operación asincrónica
+                return await _dbContext.Messages.ToListAsync();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
     }
 }
