@@ -2,23 +2,8 @@ using FormUI.Model;
 using FormUI.Services;
 using FormUI.Utility;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text.Json;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Popups;
-using WinUI.TableView;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -26,7 +11,7 @@ using WinUI.TableView;
 
 namespace FormUI
 {
-    
+
     public sealed partial class MainWindow : Window
     {
 
@@ -85,20 +70,46 @@ namespace FormUI
                 // if fields are filled
                 if (error==false)
                 {
-                    CMessage cMessage = new() { Message = message,Recipient=recipient };
-                    //Send object to api service to post data
-                    string Result = await _apiService.SendMessageAsync(cMessage);
-                    if (Result != "NO" && !Result.Contains("error"))
-                    {
-                        UMessageDialog.ShowDialog( "Twilo has sent Message!, Code  = "+ Result, this.Content.XamlRoot);
-                        PhoneNumberTextBox.Text="";
-                        MessageTextBox.Text="";
+                  var Numbers=  recipient.Split(',').ToList();
+                    string Result = "";
+                    string stext = "";
+                    foreach (var number in Numbers) {
+                        if (number!="")
+                        {
+                            CMessage cMessage = new() { Message = message, Recipient = number };
+
+                            //Send object to api service to post data
+                            Result = await _apiService.SendMessageAsync(cMessage);
+
+                            if (Result != "NO" && !Result.Contains("error"))
+                            {
+                                stext += "Twilo has sent Message!, Code  = " + Result + ", To" + number + "\n";
+                                PhoneNumberTextBox.Text = "";
+                                MessageTextBox.Text = "";
+                                LoadData();
+                            }
+                            else
+                            {
+                                stext += "Failed to send the message, to " + number;
+
+                                break;
+                            }
+                        }                 
+                       
+
+
+                    }
+
+                    //if (Result != "NO" && !Result.Contains("error"))
+                    //{
+                        UMessageDialog.ShowDialog(stext, this.Content.XamlRoot);
+                        PhoneNumberTextBox.Text = "";
+                        MessageTextBox.Text = "";
                         LoadData();
-                    }
-                    else
-                    {
-                        UMessageDialog.ShowError("Failed to send the message. Please try again.", this.Content.XamlRoot);
-                    }
+                    //}
+                   
+
+
                 }             
 
 
@@ -119,11 +130,13 @@ namespace FormUI
         {
             
             errorPhone.Visibility = Visibility.Collapsed;
+            
         }
         private void MessageTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
 
             errorMessage.Visibility = Visibility.Collapsed;
+          
         }
 
        
