@@ -1,9 +1,12 @@
-﻿using API.Models;
+﻿using API.DTO;
+using API.Extensions;
+using API.Models;
 using API.Repository;
 using API.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Twilio.TwiML.Messaging;
 
 namespace API.Controllers
 {
@@ -13,18 +16,7 @@ namespace API.Controllers
     {
 
         private readonly IMessageRepository _repository;
-        //private readonly IGenericRepository<TwilioCredentials> _Trepository;
-        //private readonly IGenericRepository<MessageSending> _Mrepository;
-
-
-        //public MessageController(IGenericRepository<Messages> repository, IGenericRepository<TwilioCredentials> Trepository, IGenericRepository<MessageSending> Mrepository)
-        //{
-        //    _repository = repository;
-        //    _Trepository = Trepository;
-        //    _Mrepository = Mrepository;
-        //}
-
-
+      
       
         public MessageController(IMessageRepository repository)
         {
@@ -34,8 +26,9 @@ namespace API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFilterMessages()
         {
-            var messages = await _repository.Query().ToListAsync();
-            return Ok(messages);
+            var messages = await _repository.Query().ToListAsync();          
+            var messagesDTO = Mapper.MapList<API.Models.Messages, MessageDTO>(messages);
+            return Ok(messagesDTO);
         }
 
         // GET: api/messages/{id}
@@ -47,35 +40,40 @@ namespace API.Controllers
             {
                 return NotFound();
             }
-            return Ok(message);
+            // CLASS FROM EF TO DTO
+            var messageDTO = Mapper.Map<API.Models.Messages, MessageDTO>(message);
+
+            return Ok(messageDTO);
         }
 
         // POST: api/messages
         [HttpPost]
-        public async Task<IActionResult> CreateMessage( Messages message)
+        public async Task<IActionResult> CreateMessage(MessageDTO messageDTO)
         {
-            if (message == null)
+            if (messageDTO == null)
             {
                 return BadRequest();
             }
-         
 
-                     var Twilo = await _repository.CreateAndSendMessage(message);
-            // CreatedAtAction(nameof(GetMessage), new { id = createdMessage.MessageId }, createdMessage);
+            // CONVERT DTO TO INSERT CLASS
+            var Message = Mapper.Map<API.DTO.MessageDTO, API.Models.Messages>(messageDTO);
+                     var Twilo = await _repository.CreateAndSendMessage(Message);
+           
             return Ok(new { Twilo });
         }
 
         // PUT: api/messages/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateMessage(int id, Messages message)
+        public async Task<IActionResult> UpdateMessage(int id, MessageDTO messageDTO)
         {
-            if (message == null || message.MessageId != id)
+            if (messageDTO == null || messageDTO.MessageId != id)
             {
                 return BadRequest();
             }
-
+            // CONVERT DTO TO UPDATE CLASS
+            var Message = Mapper.Map<API.DTO.MessageDTO, API.Models.Messages>(messageDTO);
             var existingMessage = await _repository.GetModel(m => m.MessageId == id);
-            existingMessage.Message = message.Message;
+            existingMessage.Message = Message.Message;
             if (existingMessage == null)
             {
                 return NotFound();

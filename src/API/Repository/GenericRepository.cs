@@ -16,8 +16,8 @@ namespace API.Repository
             try
             {
                 TModel? model = await _dbContext.Set<TModel>().AsNoTracking().FirstOrDefaultAsync(filter);
-                    
-                return model;
+
+                return model == null ? throw new InvalidOperationException("The model was not found.") : model;
             }
             catch (Exception)
             {
